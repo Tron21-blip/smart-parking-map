@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Parking Availability</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  text-align: center;
+}
+
+.container {
+  width: 850px;
+  margin: 20px auto;
+  background: #fff;
+  border: 3px solid #333;
+  padding: 15px;
+}
+
+h2 {
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.parking-area {
+  position: relative;
+  height: 300px;
+  border: 2px solid #000;
+  padding-top: 40px;
+}
+
+/* Slots */
+.slot {
+  width: 140px;
+  height: 180px;
+  border: 3px solid #000;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  font-weight: bold;
+  margin: 0 30px;
+  background: lightgreen;
+}
+
+.status {
+  font-size: 16px;
+}
+
+/* Bottom labels */
+.entrance {
+  position: absolute;
+  bottom: 10px;
+  left: 20px;
+  font-weight: bold;
+}
+
+.exit {
+  position: absolute;
+  bottom: 10px;
+  right: 20px;
+  font-weight: bold;
+}
+
+/* Arrows */
+.arrows {
+  position: absolute;
+  bottom: 40px;
+  width: 100%;
+  font-size: 26px;
+  letter-spacing: 40px;
+}
+
+.footer {
+  margin-top: 10px;
+  font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>Level 1 Parking Availability</h2>
+  <div class="subtitle">Scan QR code at entrance to check live slots</div>
+
+  <div class="parking-area">
+    <div class="slot" id="slot1">
+      Slot 1
+      <div class="status">Available</div>
+    </div>
+
+    <div class="slot" id="slot2">
+      Slot 2
+      <div class="status">Available</div>
+    </div>
+
+    <div class="slot" id="slot3">
+      Slot 3
+      <div class="status">Available</div>
+    </div>
+
+    <div class="arrows">→ → → → →</div>
+
+    <div class="entrance">← Entrance</div>
+    <div class="exit">Exit →</div>
+  </div>
+
+  <div class="footer">
+    Last updated: <span id="lastUpdate">--</span>
+  </div>
+</div>
+
+<script>
+const channelID = 3214397;
+
+function updateParking() {
+  fetch(`https://api.thingspeak.com/channels/${channelID}/feeds.json?results=1`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.feeds.length > 0) {
+        const f = data.feeds[0];
+        updateSlot(1, f.field1);
+        updateSlot(2, f.field2);
+        updateSlot(3, f.field3);
+        document.getElementById("lastUpdate").textContent =
+          new Date().toLocaleTimeString();
+      }
+    });
+}
+
+function updateSlot(n, val) {
+  const slot = document.getElementById("slot" + n);
+  const status = slot.querySelector(".status");
+
+  if (val == "1") {
+    slot.style.background = "#ff6961";
+    status.textContent = "Occupied";
+  } else {
+    slot.style.background = "#77dd77";
+    status.textContent = "Available";
+  }
+}
+
+updateParking();
+setInterval(updateParking, 20000);
+</script>
+
+</body>
+</html>
