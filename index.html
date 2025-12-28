@@ -1,90 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Parking Availability</title>
-  <style>
-    body { font-family: Arial, sans-serif; text-align: center; background: #f0f0f0; margin: 0; padding: 20px; }
-    h1 { color: #333; }
-    .map-container { 
-      width: 90%; max-width: 800px; height: 500px; margin: 20px auto; 
-      background: #fff; border: 3px solid #333; position: relative; border-radius: 10px; 
-    }
-    .entrance, .mall-door { 
-      position: absolute; bottom: 10px; font-weight: bold; font-size: 18px; 
-    }
-    .entrance { left: 20px; color: blue; }
-    .mall-door { right: 20px; color: green; }
-    .arrow { position: absolute; font-size: 40px; color: #666; }
-    .slot {
-      width: 100px; height: 140px; 
-      position: absolute; background: green; color: white; 
-      font-size: 24px; font-weight: bold; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    }
-    #slot1 { left: 100px; top: 150px; }
-    #slot2 { left: 350px; top: 150px; }
-    #slot3 { right: 100px; top: 150px; }
-    .status { margin-top: 10px; font-size: 18px; }
-  </style>
+<meta charset="UTF-8">
+<title>Parking Availability</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  text-align: center;
+}
+
+.container {
+  width: 850px;
+  margin: 20px auto;
+  background: #fff;
+  border: 3px solid #333;
+  padding: 15px;
+}
+
+h2 {
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.parking-area {
+  position: relative;
+  height: 300px;
+  border: 2px solid #000;
+  padding-top: 40px;
+}
+
+/* Slots */
+.slot {
+  width: 140px;
+  height: 180px;
+  border: 3px solid #000;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  font-weight: bold;
+  margin: 0 30px;
+  background: lightgreen;
+}
+
+.status {
+  font-size: 16px;
+}
+
+/* Bottom labels */
+.entrance {
+  position: absolute;
+  bottom: 10px;
+  left: 20px;
+  font-weight: bold;
+}
+
+.exit {
+  position: absolute;
+  bottom: 10px;
+  right: 20px;
+  font-weight: bold;
+}
+
+/* Arrows */
+.arrows {
+  position: absolute;
+  bottom: 40px;
+  width: 100%;
+  font-size: 26px;
+  letter-spacing: 40px;
+}
+
+.footer {
+  margin-top: 10px;
+  font-size: 14px;
+}
+</style>
 </head>
+
 <body>
-  <h1>Level 1 Parking Availability</h1>
-  <p>Scan QR code at entrance to check live slots</p>
 
-  <div class="map-container">
+<div class="container">
+  <h2>Level 1 Parking Availability</h2>
+  <div class="subtitle">Scan QR code at entrance to check live slots</div>
+
+  <div class="parking-area">
+    <div class="slot" id="slot1">
+      Slot 1
+      <div class="status">Available</div>
+    </div>
+
+    <div class="slot" id="slot2">
+      Slot 2
+      <div class="status">Available</div>
+    </div>
+
+    <div class="slot" id="slot3">
+      Slot 3
+      <div class="status">Available</div>
+    </div>
+
+    <div class="arrows">→ → → → →</div>
+
     <div class="entrance">← Entrance</div>
-    <div class="mall-door">Mall Door →</div>
-
-    <!-- Direction arrows -->
-    <div class="arrow" style="left: 80px; top: 200px;">→</div>
-    <div class="arrow" style="left: 220px; top: 200px;">→</div>
-    <div class="arrow" style="right: 220px; top: 200px;">←</div>
-    <div class="arrow" style="right: 80px; top: 200px;">←</div>
-
-    <div id="slot1" class="slot">Slot 1<br><span class="status">Available</span></div>
-    <div id="slot2" class="slot">Slot 2<br><span class="status">Available</span></div>
-    <div id="slot3" class="slot">Slot 3<br><span class="status">Available</span></div>
+    <div class="exit">Exit →</div>
   </div>
 
-  <p>Last updated: <span id="lastUpdate">--</span></p>
+  <div class="footer">
+    Last updated: <span id="lastUpdate">--</span>
+  </div>
+</div>
 
-  <script>
-    const channelID = 3214397;  // ← Replace with your ThingSpeak Channel ID (number)
+<script>
+const channelID = 3214397;
 
-    function updateParking() {
-      fetch(`https://api.thingspeak.com/channels/${channelID}/feeds.json?results=1`)
-        .then(response => response.json())
-        .then(data => {
-          if (data.feeds.length > 0) {
-            const feed = data.feeds[0];
-            updateSlot(1, feed.field1);
-            updateSlot(2, feed.field2);
-            updateSlot(3, feed.field3);
-
-            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-          }
-        })
-        .catch(err => console.error("Fetch error:", err));
-    }
-
-    function updateSlot(num, status) {
-      const slot = document.getElementById(`slot${num}`);
-      const text = slot.querySelector('.status');
-      if (status == "1") {
-        slot.style.background = "red";
-        text.textContent = "Occupied";
-      } else {
-        slot.style.background = "green";
-        text.textContent = "Available";
+function updateParking() {
+  fetch(`https://api.thingspeak.com/channels/${channelID}/feeds.json?results=1`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.feeds.length > 0) {
+        const f = data.feeds[0];
+        updateSlot(1, f.field1);
+        updateSlot(2, f.field2);
+        updateSlot(3, f.field3);
+        document.getElementById("lastUpdate").textContent =
+          new Date().toLocaleTimeString();
       }
-    }
+    });
+}
 
-    // Update immediately and then every 20 seconds
-    updateParking();
-    setInterval(updateParking, 20000);
-  </script>
+function updateSlot(n, val) {
+  const slot = document.getElementById("slot" + n);
+  const status = slot.querySelector(".status");
+
+  if (val == "1") {
+    slot.style.background = "#ff6961";
+    status.textContent = "Occupied";
+  } else {
+    slot.style.background = "#77dd77";
+    status.textContent = "Available";
+  }
+}
+
+updateParking();
+setInterval(updateParking, 20000);
+</script>
+
 </body>
 </html>
